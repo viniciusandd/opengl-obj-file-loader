@@ -15,11 +15,15 @@ struct Vertice {
 	double z;
 };
 
+struct Textura {
+	double x;
+	double y;
+	double z;
+};
+
 struct Quadrado {
-	Vertice vertice1;
-	Vertice vertice2;
-	Vertice vertice3;
-	Vertice vertice4;
+	Vertice vertice1, vertice2, vertice3, vertice4;
+	Textura textura1, textura2, textura3, textura4;
 };
 
 class CScene1 : public CSceneBaseClass
@@ -62,6 +66,7 @@ private:
 	CTexto			*pTexto;	// Objeto que gerencia texto	
 	CTimer			*pTimer;	// Objeto que gerencia o timer
 
+	CTexture* pTexture;
 
 	int		iFPS;			// FPS and FPS Counter
 	int		iFrames;		// FPS and FPS Counter

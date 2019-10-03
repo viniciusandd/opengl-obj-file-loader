@@ -1,4 +1,4 @@
-#include "Scene1.h"
+Ôªø#include "Scene1.h"
 #include <vector>
 
 
@@ -16,11 +16,17 @@ CScene1::CScene1()
 	ulLastFPS = 0;
 	szTitle[256] = 0;
 
-	// Cria gerenciador de impress„o de texto na tela
+	// Cria gerenciador de impress√£o de texto na tela
 	pTexto = new CTexto();
 
 	// Cria camera
 	pCamera = new CCamera(0.0f, 1.0f, 20.0f);
+
+	pTexture = new CTexture();	
+	pTexture->CreateTextureLinear(0, "../Scene1/CRATE.BMP");
+	pTexture->CreateTextureLinear(1, "../Scene1/brick2.bmp");
+	pTexture->CreateTextureLinear(2, "../Scene1/grass.bmp");
+
 
 	// Cria o Timer
 	pTimer = new CTimer();
@@ -60,12 +66,18 @@ CScene1::~CScene1(void)
 		delete pTimer;
 		pTimer = NULL;
 	}
+
+	if (pTexture) 
+	{
+		delete pTexture;
+		pTexture = NULL;
+	}
 }
 
 
 
 
-int CScene1::DrawGLScene(void)	// FunÁ„o que desenha a cena
+int CScene1::DrawGLScene(void)	// Fun√ß√£o que desenha a cena
 {
 	// Get FPS
 	if (GetTickCount() - ulLastFPS >= 1000)	// When A Second Has Passed...
@@ -82,7 +94,7 @@ int CScene1::DrawGLScene(void)	// FunÁ„o que desenha a cena
 	glLoadIdentity();									// Inicializa a Modelview Matrix Atual
 
 
-	// Seta as posiÁıes da c‚mera
+	// Seta as posi√ß√µes da c√¢mera
 	pCamera->setView();
 
 	// Desenha grid 
@@ -90,29 +102,34 @@ int CScene1::DrawGLScene(void)	// FunÁ„o que desenha a cena
 
 	DrawAxis();
 
-	// Modo FILL ou WIREFRAME (pressione barra de espaÁo)	
+	// Modo FILL ou WIREFRAME (pressione barra de espa√ßo)	
 	if (bIsWireframe)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	else
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//                               DESENHA OS OBJETOS DA CENA (INÕCIO)
+	//                               DESENHA OS OBJETOS DA CENA (IN√çCIO)
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 
+	glEnable(GL_TEXTURE_2D);	
+	glColor3f(1.0f, 1.0f, 1.0f);
 	vector<Quadrado> qQuadrados = LerArquivo("../Cubos.obj");
 	for (int i = 0; i < qQuadrados.size(); i++) {
 		Quadrado q = qQuadrados[i];
 		glPushMatrix();
+		pTexture->ApplyTexture(0);
 		glBegin(GL_QUADS);
-			glVertex3f(q.vertice1.x, q.vertice1.y, q.vertice1.z);
-			glVertex3f(q.vertice2.x, q.vertice2.y, q.vertice2.z);
-			glVertex3f(q.vertice3.x, q.vertice3.y, q.vertice3.z);
-			glVertex3f(q.vertice4.x, q.vertice4.y, q.vertice4.z);
+			glTexCoord3d(q.textura1.x, q.textura1.y, q.textura1.z); glVertex3f(q.vertice1.x, q.vertice1.y, q.vertice1.z);
+			glTexCoord3d(q.textura2.x, q.textura2.y, q.textura2.z); glVertex3f(q.vertice2.x, q.vertice2.y, q.vertice2.z);
+			glTexCoord3d(q.textura3.x, q.textura3.y, q.textura3.z); glVertex3f(q.vertice3.x, q.vertice3.y, q.vertice3.z);
+			glTexCoord3d(q.textura4.x, q.textura4.y, q.textura4.z); glVertex3f(q.vertice4.x, q.vertice4.y, q.vertice4.z);
 		glEnd();
 		glPopMatrix();
 	}
+
+	glDisable(GL_TEXTURE_2D);
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//                               DESENHA OS OBJETOS DA CENA (FIM)
@@ -120,9 +137,9 @@ int CScene1::DrawGLScene(void)	// FunÁ„o que desenha a cena
 	fTimerPosY = pTimer->GetTime() / 1000.0f;
 	fRenderPosY += 0.2f;
 
-	// Impress„o de texto na tela...
-	// Muda para modo de projeÁ„o ortogonal 2D
-	// OBS: Desabilite Texturas e IluminaÁ„o antes de entrar nesse modo de projeÁ„o
+	// Impress√£o de texto na tela...
+	// Muda para modo de proje√ß√£o ortogonal 2D
+	// OBS: Desabilite Texturas e Ilumina√ß√£o antes de entrar nesse modo de proje√ß√£o
 	OrthoMode(0, 0, WIDTH, HEIGHT);
 
 
@@ -146,18 +163,18 @@ int CScene1::DrawGLScene(void)	// FunÁ„o que desenha a cena
 	glRasterPos2f(10.0f, 40.0f);
 	pTexto->glPrint("Player LookAt  : %f, %f, %f", pCamera->Forward[0], pCamera->Forward[1], pCamera->Forward[2]);
 
-	//// PosiÁ„o do Player
+	//// Posi√ß√£o do Player
 	glRasterPos2f(10.0f, 60.0f);
 	pTexto->glPrint("Player Position: %f, %f, %f", pCamera->Position[0], pCamera->Position[1], pCamera->Position[2]);
 
-	//// Imprime o FPS da aplicaÁ„o e o Timer
+	//// Imprime o FPS da aplica√ß√£o e o Timer
 	glRasterPos2f(10.0f, 80.0f);
 	pTexto->glPrint("Frames-per-Second: %d ---- Timer: %.1f segundos", iFPS, (pTimer->GetTime()/1000));
 
 
 	glPopMatrix();
 
-	// Muda para modo de projeÁ„o perspectiva 3D
+	// Muda para modo de proje√ß√£o perspectiva 3D
 	PerspectiveMode();
 
 	return true;
@@ -168,7 +185,7 @@ int CScene1::DrawGLScene(void)	// FunÁ„o que desenha a cena
 
 void CScene1::MouseMove(void) // Tratamento de movimento do mouse
 {
-	// Realiza os c·lculos de rotaÁ„o da vis„o do Player (atravÈs das coordenadas
+	// Realiza os c√°lculos de rota√ß√£o da vis√£o do Player (atrav√©s das coordenadas
 	// X do mouse.
 	POINT mousePos;
 	int middleX = WIDTH >> 1;
@@ -183,7 +200,7 @@ void CScene1::MouseMove(void) // Tratamento de movimento do mouse
 	fDeltaX = (float)((middleX - mousePos.x)) / 10;
 	fDeltaY = (float)((middleY - mousePos.y)) / 10;
 
-	// Rotaciona apenas a c‚mera
+	// Rotaciona apenas a c√¢mera
 	pCamera->rotateGlob(-fDeltaX, 0.0f, 1.0f, 0.0f);
 	pCamera->rotateLoc(-fDeltaY, 1.0f, 0.0f, 0.0f);
 }
@@ -211,7 +228,7 @@ void CScene1::KeyPressed(void) // Tratamento de teclas pressionadas
 	{
 		pCamera->moveGlob(pCamera->Right[0], pCamera->Right[1], pCamera->Right[2]);
 	}
-	// Sen„o, interrompe movimento do Player
+	// Sen√£o, interrompe movimento do Player
 	else
 	{
 	}
@@ -337,7 +354,7 @@ void CScene1::Draw3DSGrid(float width, float length)
 //	glTexCoord2d(1.0f, 1.0f); glVertex3f( 0.5f,  0.5f, 0.5f);
 //	glTexCoord2d(0.0f, 1.0f); glVertex3f(-0.5f,  0.5f, 0.5f);
 //
-//	// face tr·s
+//	// face tr√°s
 //	glTexCoord2d(0.0f, 0.0f); glVertex3f(0.5f, -0.5f, -0.5f);
 //	glTexCoord2d(0.0f, 1.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
 //	glTexCoord2d(1.0f, 1.0f); glVertex3f(-0.5f, 0.5f, -0.5f);
@@ -413,9 +430,10 @@ vector<string> CScene1::Split(string s, string delimiter) {
 
 vector<Quadrado> CScene1::LerArquivo(string caminho) {
 
-	vector<string> sVertices, sPoligonos;
+	vector<string> sVertices, sTexturas, sPoligonos;
 	vector<Vertice> vVertices;
-	vector<Quadrado> qQuadrados;
+	vector<Textura> tTexturas;
+	vector<Quadrado> qQuadrados;	
 
 	/// Lendo o arquivo
 	ifstream arquivo;
@@ -423,7 +441,7 @@ vector<Quadrado> CScene1::LerArquivo(string caminho) {
 	arquivo.open(caminho);
 	if (arquivo.is_open()) {
 		while (getline(arquivo, linha)) {
-			/// Armazenando os vÈrtices
+			/// Armazenando os v√©rtices
 			if (linha[0] == 'v' && linha[1] == ' ') {
 				sVertices = Split(linha.substr(3, linha.length()), " ");
 				Vertice v;
@@ -435,8 +453,15 @@ vector<Quadrado> CScene1::LerArquivo(string caminho) {
 
 			/// -> Armazenando as normais
 
-			/// -> Armazenando as texturas
-
+			/// Armazenando as texturas
+			if (linha[0] == 'v' && linha[1] == 't') {
+				sTexturas = Split(linha.substr(3, linha.length()), " ");
+				Textura t;
+				t.x = atof(sTexturas[0].c_str());
+				t.y = atof(sTexturas[1].c_str());
+				t.z = atof(sTexturas[2].c_str());
+				tTexturas.push_back(t);
+			}
 
 			/// Armazenando os poligonos e buscando as infos nos outros vectores
 			if (linha[0] == 'f') {
@@ -446,19 +471,26 @@ vector<Quadrado> CScene1::LerArquivo(string caminho) {
 				Quadrado q;
 				for (int i = 0; i < sPoligonos.size(); i++) {
 					char sPosicaoVertice = sPoligonos[i][0];
+					char sPosicaoTextura = sPoligonos[i][2];
+					char sPosicaoNormal  = sPoligonos[i][4];
 					Vertice v = vVertices[(sPosicaoVertice - '0') - 1];
+					Textura t = tTexturas[(sPosicaoTextura - '0') - 1];
 					switch (i) {
 					case 0:
 						q.vertice1 = v;
+						q.textura1 = t;
 						break;
 					case 1:
 						q.vertice2 = v;
+						q.textura2 = t;
 						break;
 					case 2:
 						q.vertice3 = v;
+						q.textura3 = t;
 						break;
 					case 3:
 						q.vertice4 = v;
+						q.textura4 = t;
 						break;
 					}
 				}
@@ -478,7 +510,7 @@ vector<Quadrado> CScene1::LerArquivo(string caminho) {
 //	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 //	glPushMatrix();
 //
-//	// Centraliza o Skybox em torno da posiÁ„o especificada(x, y, z)
+//	// Centraliza o Skybox em torno da posi√ß√£o especificada(x, y, z)
 //	x = x - width / 2;
 //	y = y - height / 2;
 //	z = z - length / 2;
